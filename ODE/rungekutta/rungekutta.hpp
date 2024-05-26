@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <vector>
 #include <cstdint>
@@ -6,57 +5,44 @@
 #include <filesystem>
 #include <functional>
 
-// y = x^2 
-// dy/dx = 2x
-double derivative(double x, double y){
-  // calculates the derivative f(x,y) given input x, y
-  return 2*x;
-};
-
 namespace delfina{
+
   struct iterator{
-    iterator(double begin_t, std::size_t begin_i): t{begin_t}, i{begin_i}{}
+    iterator(float begin_t, std::size_t begin_i): t{begin_t}, i{begin_i}{}
     double t;
     std::size_t i;
   };
 
-  struct ParameterPack{};
+  struct ParameterPack{
+    double stepsize;
+    double initialIndependent;
+    double initialDependent;
+    double maxIndependent;
+    double maxDependent;
+  };
 
   class Solver{
     public:
-      Solver() = default;
+      Solver(std::function<float(float, float)> derivative, ParameterPack& pack);
       Solver& operator=(const Solver&) = delete;
       virtual ~Solver() = 0;
+      virtual void Solve() = 0;
+      virtual void Step() = 0;
       void WriteTo(std::ostream& ost);
     private:
       std::vector<double> m_dependent;
       std::vector<double> m_independent;
+      ParameterPack m_parameters;
   };
 
-  template<typename T>
-  class RuneKutta{
-    RuneKutta(std::function<T(T,T)> derivative);
-    void Solve() const;
-    void Step() const;
+  class RuneKutta: public Solver{
+    RuneKutta(std::function<float(float,float)> derivative);
+    virtual void Solve() override;
+    virtual void Step() override;
   };
 }
 
-
-void SaveToFile(const std::vector<double>& domain, const std::vector<double>& range){
-  if(std::remove("./output.csv")){
-    std::cout << "removed dirty file" << '\n';
-  }
-  else{
-    std::cout << "no outputfile, creaing file now" << '\n';
-  }
-  std::ofstream out{"./output.csv"};
-  out << "x, y\n";
-  for(std::size_t i = 0; i < domain.size(); i++){
-    out << domain[i] << ", " << range[i] << '\n';
-  }
-}
-
-int main(){
+/*
   double stepsizeH = 0.5;
   double maxT = 100;
   double initialT = 0;
@@ -89,5 +75,4 @@ int main(){
     Tvalues.push_back(currentT);
   }
   SaveToFile(Tvalues, Wvalues);
-
-}
+*/
